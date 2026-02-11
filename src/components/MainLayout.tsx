@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import React, { useState, ReactNode } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  AppBar, Toolbar, Typography, Button, Drawer, List,
-  ListItem, ListItemIcon, ListItemText, Divider, Box, Avatar, IconButton,
+  AppBar, Toolbar, Typography, Drawer, List,
+  ListItem, ListItemIcon, ListItemText, Divider, Box, IconButton,
   useTheme, useMediaQuery
 } from '@mui/material';
 import {
@@ -13,19 +13,25 @@ import { useAuth } from '../context/AuthContext';
 
 const drawerWidth = 260;
 
-const MainLayout = ({ children }) => {
+interface MainLayoutProps {
+  children: ReactNode;
+}
+
+const MainLayout = ({ children }:MainLayoutProps) => {
   const { authState, logout } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
-  const [open, setOpen] = useState(true);
+  
+  const [open, setOpen] = useState<boolean>(true);
+  
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     logout();
     navigate('/login');
   };
 
-  const toggleDrawer = () => {
+  const toggleDrawer = (): void => {
     setOpen(!open);
   };
 
@@ -35,7 +41,7 @@ const MainLayout = ({ children }) => {
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <AccountCircle sx={{ fontSize: 96, color: '#00152a' }} />
         <Typography variant="subtitle1" sx={{ mt: 2, fontWeight: 'bold', color: '#00152a' }}>
-          {authState.userName}
+          {authState.userName || 'Usuario'}
         </Typography>
       </Box>
       <Divider sx={{ my: 1 }} />
@@ -46,9 +52,9 @@ const MainLayout = ({ children }) => {
       <List sx={{ px: 1 }}>
         <ListItem
           button
-          component={Link}
+          component={Link as any}
           to="/home"
-          onClick={isMobile ? toggleDrawer : null}
+          onClick={isMobile ? toggleDrawer : undefined}
           sx={{ borderRadius: 2, mb: 1, '&:hover': { backgroundColor: '#e3f2fd' } }}
         >
           <ListItemIcon><Home color="primary" /></ListItemIcon>
@@ -57,9 +63,9 @@ const MainLayout = ({ children }) => {
 
         <ListItem
           button
-          component={Link}
+          component={Link as any}
           to="/clientes"
-          onClick={isMobile ? toggleDrawer : null}
+          onClick={isMobile ? toggleDrawer : undefined}
           sx={{ borderRadius: 2, '&:hover': { backgroundColor: '#e3f2fd' } }}
         >
           <ListItemIcon><People color="primary" /></ListItemIcon>
@@ -128,7 +134,7 @@ const MainLayout = ({ children }) => {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
-          marginLeft: isMobile || !open ? 0 : 0,
+          marginLeft: 0,
           ...(!isMobile && !open && {
             marginLeft: `-${drawerWidth}px`,
           })

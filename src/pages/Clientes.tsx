@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Typography, Button, Box, TextField, Grid, Table, TableBody,
   TableCell, TableContainer, TableHead, TableRow, Paper,
@@ -13,19 +13,21 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
+import { Cliente } from '../types/ICliente';
 
 const Clientes = () => {
   const navigate = useNavigate();
   const { authState } = useAuth();
   const { showNotification } = useNotification();
 
-  const [clientes, setClientes] = useState([]);
-  const [clientesFiltrados, setClientesFiltrados] = useState([]);
-  const [filtros, setFiltros] = useState({ nombre: '', identificacion: '' });
-  const [loading, setLoading] = useState(false);
-  const [openDelete, setOpenDelete] = useState(false);
-  const [selectedClientId, setSelectedClientId] = useState(null);
-  const [showClearBtn, setShowClearBtn] = useState(false);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [clientesFiltrados, setClientesFiltrados] = useState<Cliente[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [openDelete, setOpenDelete] = useState<boolean>(false);
+  const [selectedClientId, setSelectedClientId] = useState<number | string | null>(null);
+  const [showClearBtn, setShowClearBtn] = useState<boolean>(false);
+  const nombreRef = useRef<HTMLInputElement>(null);
+  const identificacionRef = useRef<HTMLInputElement>(null);
 
   const fetchClientes = useCallback(async () => {
     setLoading(true);
@@ -35,7 +37,7 @@ const Clientes = () => {
         identificacion: '',
         usuarioId: authState.usuarioId
       };
-      const response = await api.post('/api/Cliente/Listado', payload);
+      const response = await api.post<Cliente[]>('/api/Cliente/Listado', payload);
       const data = Array.isArray(response.data) ? response.data : [];
       setClientes(data);
       setClientesFiltrados(data);
@@ -46,14 +48,17 @@ const Clientes = () => {
     }
   }, [authState.usuarioId, showNotification]);
 
-  const handleSearch = (e) => {
+  const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const busquedaNombre = filtros.nombre.toLowerCase().trim();
-    const busquedaId = filtros.identificacion.toLowerCase().trim();
+    
+    const busquedaNombre = nombreRef.current?.value.toLowerCase().trim() || '';
+    const busquedaId = identificacionRef.current?.value.toLowerCase().trim() || '';
+    
     if (!busquedaNombre && !busquedaId) {
       handleReset();
       return;
     }
+
     const resultado = clientes.filter(cliente => {
       const nombreCompleto = `${cliente.nombre} ${cliente.apellidos}`.toLowerCase();
       const coincideNombre = nombreCompleto.includes(busquedaNombre);
@@ -71,28 +76,24 @@ const Clientes = () => {
     }
   };
 
-  const handleInputChange = (e) => {
-    setFiltros({ ...filtros, [e.target.name]: e.target.value });
-  };
-
-  const handleReset = () => {
-    setFiltros({ nombre: '', identificacion: '' });
+const handleReset = () => {
+    if (nombreRef.current) nombreRef.current.value = '';
+    if (identificacionRef.current) identificacionRef.current.value = '';
     setClientesFiltrados(clientes);
     setShowClearBtn(false);
   };
 
-  const handleDeleteClick = (id) => {
+  const handleDeleteClick = (id: number | string) => {
     setSelectedClientId(id);
     setOpenDelete(true);
   };
 
   const confirmDelete = async () => {
     try {
-      //const response = await api.delete(`/api/Cliente/Eliminar/${selectedClientId}`);
-      //TODO el método “delete” está desactivado, se debe programar, pero no consumirlo.
-        showNotification('No se pudo eliminar el cliente', 'error');
-        setOpenDelete(false);
-        fetchClientes();
+      // TODO: Implementar eliminación real cuando el backend esté listo
+      showNotification('No se pudo eliminar el cliente', 'error');
+      setOpenDelete(false);
+      fetchClientes();
     } catch (error) {
       showNotification('No se pudo eliminar el cliente', 'error');
     }
@@ -101,7 +102,6 @@ const Clientes = () => {
   useEffect(() => {
     fetchClientes();
   }, [fetchClientes]);
-
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -121,43 +121,46 @@ const Clientes = () => {
             </Button>
           </Grid>
         </Grid>
+        
         <Divider sx={{ my: 1 }} />
+        
         <form onSubmit={handleSearch}>
           <Grid container spacing={2} alignItems="center" sx={{ p: 2 }}>
             <Grid item xs={12} sm={6}>
-              <TextField fullWidth label="Nombre" name="nombre" value={filtros.nombre} onChange={handleInputChange} size="small" />
+              <TextField 
+                fullWidth 
+                label="Nombre" 
+                name="nombre" 
+                inputRef={nombreRef}
+                size="small" 
+              />
             </Grid>
             <Grid item xs={12} sm={5}>
-              <TextField fullWidth label="Identificación" name="identificacion" value={filtros.identificacion} onChange={handleInputChange} size="small" />
+              <TextField 
+                fullWidth 
+                label="Identificación" 
+                name="identificacion" 
+                inputRef={identificacionRef}
+                size="small" 
+              />
             </Grid>
             <Grid item xs={12} sm={1} sx={{ display: 'flex', gap: 1, justifyContent: "center" }}>
-              {!showClearBtn ?
-                <IconButton
-                  color="default"
-                  type="submit"
-                  sx={{ border: "solid 1px" }}
-                >
+              {!showClearBtn ? (
+                <IconButton color="default" type="submit" sx={{ border: "solid 1px" }}>
                   <Search />
-                </IconButton> : <IconButton
-                  color="error"
-                  type='button'
-                  sx={{ border: "solid 1px" }}
-                  onClick={handleReset}
-                >
+                </IconButton>
+              ) : (
+                <IconButton color="error" type='button' sx={{ border: "solid 1px" }} onClick={handleReset}>
                   <Refresh />
                 </IconButton>
-              }
+              )}
             </Grid>
           </Grid>
         </form>
+
         <Divider sx={{ my: 1 }} />
-        <Grid container alignItems="center" sx={{ pl: 2, pt: 2, pb: 0 }}>
-        <TableContainer
-          sx={{
-            borderRadius: 0,
-            maxHeight: 'calc(100vh - 320px)',
-          }}
-        >
+
+        <TableContainer sx={{ maxHeight: 'calc(100vh - 320px)' }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>
@@ -196,7 +199,6 @@ const Clientes = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        </Grid>
       </Paper>
 
       <Dialog open={openDelete} onClose={() => setOpenDelete(false)}>

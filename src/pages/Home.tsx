@@ -1,7 +1,6 @@
 import { Typography, Box } from '@mui/material';
 
 const Home = () => {
-
   return (
     <Box
       sx={{
@@ -11,7 +10,16 @@ const Home = () => {
         minHeight: 'calc(100vh - 120px)'
       }}
     >
-      <Typography variant="h2" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
+      <Typography 
+        variant="h2" 
+        component="h1" 
+        gutterBottom 
+        sx={{ 
+          fontWeight: 'bold',
+          color: '#00152a',
+          textAlign: 'center'
+        }}
+      >
         ¡Bienvenido!
       </Typography>
     </Box>

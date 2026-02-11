@@ -1,18 +1,17 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import ProtectedRoute from './components/ProtectedRoute';
-
 import Login from './pages/Login';
 import Register from './pages/Register';
+import MainLayout from './components/MainLayout';
 import Home from './pages/Home';
 import Clientes from './pages/Clientes';
-import NotFound from './pages/NotFound';
-import MainLayout from './components/MainLayout';
 import MantenimientoCliente from './pages/MantenimientoCliente';
+import NotFound from './pages/NotFound';
 
-
-function App() {
+export default function App(){
   return (
     <AuthProvider>
       <NotificationProvider>
@@ -20,26 +19,32 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            
+            {/* Rutas protegidas con Layout */}
             <Route path="/home" element={
               <ProtectedRoute>
                 <MainLayout> <Home /> </MainLayout>
               </ProtectedRoute>
             } />
+            
             <Route path="/clientes" element={
               <ProtectedRoute>
                 <MainLayout> <Clientes /> </MainLayout>
               </ProtectedRoute>
             } />
+            
             <Route path="/mantenimiento-cliente" element={
               <ProtectedRoute>
                 <MainLayout><MantenimientoCliente /></MainLayout>
               </ProtectedRoute>
             } />
+            
             <Route path="/mantenimiento-cliente/:id" element={
               <ProtectedRoute>
                 <MainLayout><MantenimientoCliente /></MainLayout>
               </ProtectedRoute>
             } />
+            
             <Route path="/" element={<Navigate to="/home" />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
@@ -48,5 +53,3 @@ function App() {
     </AuthProvider>
   );
 }
-
-export default App;
